@@ -58,17 +58,8 @@ unsigned char * base64_encode(const unsigned char * in_code, long len)
 }
 
 unsigned char * base64_decode(unsigned char * out_code)
-{}
-
-
-int main(void)
 {
-    long i;
-    printf("map table length: %lu\n", strlen(mapptr));
-
-    for(i = 0; i < 16; i++)
-        printf("length=%ld, encode: %s\n", i, encode(mapptr, i));
-
-    return 0;
+    return NULL;
 }
+
 
