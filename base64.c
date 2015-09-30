@@ -2,13 +2,33 @@
 #include <stdlib.h>
 #include <string.h>
 
+//#define DEBUG
+
 #define PRINT_TAG   "base64"
 
+#ifdef DEBUG
 #define dprintf(fmt, args...)   printf("[DBG]"PRINT_TAG": "fmt, ##args)
+#else
+#define dprintf(fmt, args...)
+#endif
+
 #define eprintf(fmt, args...)   printf("[ERR]"PRINT_TAG": "fmt, ##args)
 
 const unsigned char * mapptr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+static int demap[128];
 
+static init_demap(void)
+{
+    int i;
+    for(i = 0; i < 64; i++) {
+        demap[mapptr[i]] = i;
+        //dprintf("demap[%d] = %d\n", mapptr[i], i);
+    }
+}
+
+/**
+ * if return is not NULL, malloc memory must be freed
+ */
 unsigned char * base64_encode(const unsigned char * in_code, long len)
 {
     unsigned int current;
@@ -60,9 +80,54 @@ unsigned char * base64_encode(const unsigned char * in_code, long len)
     return buffer;
 }
 
-unsigned char * base64_decode(unsigned char * out_code)
+unsigned char * base64_decode(unsigned char * ciphertext)
 {
-    return NULL;
+    long len;
+    char *buffer;
+    long buffer_size;
+    long buffer_pos;
+    int i;
+    unsigned int current;
+
+    if(!ciphertext)
+        return NULL;
+    len = strlen(ciphertext);
+    if(len % 4) {
+        eprintf("decode, format error!\n");
+        return NULL;
+    }
+
+    buffer_size = len / 4 * 3;
+    dprintf("buffer_size = %ld\n", buffer_size);
+
+    buffer = malloc(buffer_size);
+    if(!buffer) {
+        eprintf("malloc failure\n");
+        return NULL;
+    }
+
+    init_demap();
+    buffer_pos = 0;
+    for(i = 0; i < len - 3; i += 4) {
+        current = (demap[ciphertext[i]] << 18) | (demap[ciphertext[i+1]] << 12) | (demap[ciphertext[i+2]] << 6) | (demap[ciphertext[i+3]]);
+        dprintf("current = %x\n", current);
+        buffer[buffer_pos++] = (current & (0xff << 16)) >> 16;
+        buffer[buffer_pos++] = (current & (0xff << 8)) >> 8;
+        buffer[buffer_pos++] = (current & (0xff << 0)) >> 0;
+    }
+    if(ciphertext[i + 2] == '=' && ciphertext[i + 3] == '=') {
+        current = (demap[ciphertext[i]] << 10) | (demap[ciphertext[i+1]] << 4);
+        dprintf("current = %x\n", current);
+        buffer[buffer_pos++] = (current & (0xff << 8)) >> 8;
+    } else if(ciphertext[i + 3] == '=') {
+        current = (demap[ciphertext[i]] << 18) | (demap[ciphertext[i+1]] << 12) | (demap[ciphertext[i+2]] << 6);
+        dprintf("current = %x\n", current);
+        buffer[buffer_pos++] = (current & (0xff << 16)) >> 16;
+        buffer[buffer_pos++] = (current & (0xff << 8)) >> 8;
+    }
+    buffer[buffer_pos] = 0;
+
+    return buffer;
 }
 
 
