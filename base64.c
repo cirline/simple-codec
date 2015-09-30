@@ -2,9 +2,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-const unsigned char * mapptr = "ABCDEFGHIJKLMNOPQRSTUVWXYZ\
-                                abcdefghijklmnopqrstuvwxyz\
-                                0123456789+/";
+#define PRINT_TAG   "base64"
+
+#define dprintf(fmt, args...)   printf("[DBG]"PRINT_TAG": "fmt, ##args)
+#define eprintf(fmt, args...)   printf("[ERR]"PRINT_TAG": "fmt, ##args)
+
+const unsigned char * mapptr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 unsigned char * base64_encode(const unsigned char * in_code, long len)
 {
@@ -20,11 +23,11 @@ unsigned char * base64_encode(const unsigned char * in_code, long len)
     if(len % 3 > 0)
         buffer_size += 4;
     buffer_size++;
-    printf("buffer_size = %d\n", buffer_size);
+    dprintf("buffer_size = %d\n", buffer_size);
 
     buffer = malloc(buffer_size);
     if(!buffer) {
-        printf("encode: malloc buffer failure\n");
+        eprintf("encode: malloc buffer failure\n");
         return NULL;
     }
 
