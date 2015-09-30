@@ -12,8 +12,8 @@ all: $(target_file) $(test_file)
 $(target_file): $(objs)
 	$(CC) -o lib$@.so -shared $^
 
-$(test): test.o
-	$(CC) $^ -o $@.out
+$(test_file): test.o
+	$(CC) -o $@.out $^ $(CFLAGS)
 
 
 clean:
